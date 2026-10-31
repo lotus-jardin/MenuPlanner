@@ -8,6 +8,12 @@ function normalizeSmartQuotes(text) {
   return text.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
 }
 
+// ChatGPTの返事をコピーすると、「\[」「\]」のようにマークダウン用の「\」が付いてくる
+// ことがある。JSONで意味のある「\"」「\n」などは残し、それ以外の「\」だけ取り除く。
+function removeMarkdownEscapes(text) {
+  return text.replace(/\\(.)/g, (match, ch) => ('"\\/bfnrtu'.includes(ch) ? match : ch));
+}
+
 // 「"ingredients": { … }, { … }, { … }」のように、本来 [ ... ] で囲むはずの
 // オブジェクトの並びを、角かっこ無しでそのまま書いてしまうことがある
 // （ChatGPTで時々見られる崩れ方）。コロンの直後が「{ … }, { … }」の形に
@@ -126,10 +132,11 @@ function extractJson(text) {
       try {
         return JSON.parse(candidate.replace(/,\s*([}\]])/g, "$1"));
       } catch {
-        // それでも読み取れない場合、スマート引用符・配列の角かっこ抜けという
+        // それでも読み取れない場合、「\[」・スマート引用符・配列の角かっこ抜けという
         // よくある崩れ方を直してから最後にもう一度だけ試す
         try {
-          const repaired = wrapMissingArrayBrackets(normalizeSmartQuotes(candidate)).replace(
+          const cleaned = removeMarkdownEscapes(normalizeSmartQuotes(candidate));
+          const repaired = wrapMissingArrayBrackets(cleaned).replace(
             /,\s*([}\]])/g,
             "$1"
           );
