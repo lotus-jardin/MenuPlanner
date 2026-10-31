@@ -147,7 +147,19 @@ function renderShoppingList() {
 
   shoppingEmpty.style.display = grouped.size === 0 && extraItems.length === 0 ? "block" : "none";
 
-  let totalBudget = 0;
+  // チェックを入れた（買った）ものを除いた、残りの推定予算を計算し直すために、
+  // 食材ごとの金額を覚えておく。
+  const itemTotalByName = new Map();
+
+  function recomputeBudgetEstimate() {
+    const currentChecked = loadShoppingChecked(periodKey);
+    let remaining = 0;
+    for (const [name, itemTotal] of itemTotalByName) {
+      if (!currentChecked[name]) remaining += itemTotal;
+    }
+    budgetEstimate.textContent =
+      remaining > 0 ? `推定予算：約¥${remaining.toLocaleString()}（未購入分・AIによる概算）` : "";
+  }
 
   function appendShoppingRow(name, detailText, { deletable, onDelete } = {}) {
     const li = document.createElement("li");
@@ -164,6 +176,7 @@ function renderShoppingList() {
       current[name] = checkbox.checked;
       saveShoppingChecked(periodKey, current);
       li.classList.toggle("is-checked", checkbox.checked);
+      recomputeBudgetEstimate();
     });
     li.appendChild(checkbox);
 
@@ -208,7 +221,7 @@ function renderShoppingList() {
     for (const [name, { items, remainingAmount, remainingRatio }] of entries) {
       const rawTotal = items.reduce((sum, item) => sum + (item.price || 0), 0);
       const itemTotal = remainingRatio != null ? Math.round(rawTotal * remainingRatio) : rawTotal;
-      totalBudget += itemTotal;
+      itemTotalByName.set(name, itemTotal);
 
       const breakdown = items
         .map((item) => {
@@ -248,8 +261,7 @@ function renderShoppingList() {
     }
   }
 
-  budgetEstimate.textContent =
-    totalBudget > 0 ? `推定予算：約¥${totalBudget.toLocaleString()}（AIによる概算）` : "";
+  recomputeBudgetEstimate();
 }
 
 // 買う食材リストを、パートナーなどに頼みやすいテキストにして共有する機能。
