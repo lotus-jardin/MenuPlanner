@@ -57,6 +57,7 @@ function renderSavedMenus() {
     deleteBtn.textContent = "×";
     deleteBtn.setAttribute("aria-label", "削除");
     deleteBtn.addEventListener("click", () => {
+      if (!window.confirm(`「${item.label}」を削除しますか？`)) return;
       const current = loadSavedMenus().filter((i) => i.id !== item.id);
       saveSavedMenus(current);
       renderSavedMenus();

@@ -42,6 +42,7 @@ function renderPantry() {
     deleteBtn.textContent = "×";
     deleteBtn.setAttribute("aria-label", "削除");
     deleteBtn.addEventListener("click", () => {
+      if (!window.confirm(`「${item.name}」を削除しますか？`)) return;
       const current = loadPantry().filter((i) => i.id !== item.id);
       savePantry(current);
       renderPantry();
