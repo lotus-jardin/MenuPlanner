@@ -3,6 +3,8 @@ const infoBtn = document.getElementById("info-btn");
 const infoOverlay = document.getElementById("info-overlay");
 const infoCloseBtn = document.getElementById("info-close-btn");
 
+document.getElementById("app-version").textContent = APP_VERSION;
+
 function openInfoPanel() {
   infoOverlay.hidden = false;
   infoCloseBtn.focus();

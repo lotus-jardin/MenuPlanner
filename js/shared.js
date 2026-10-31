@@ -5,6 +5,10 @@
 // index.html / family.html / dislikes.html / pantry.html で、各ページ自身の
 // スクリプトより先に読み込む。
 
+// アプリのバージョン。「？」パネルに表示して、スマホに新しい版が届いているか確かめるのに使う。
+// 更新するときは sw.js の CACHE_NAME の番号も同じにそろえる。
+const APP_VERSION = "v23";
+
 const FAMILY_STORAGE_KEY = "menuApp.familyMembers";
 const DEFAULT_FAMILY_MEMBERS = [
   { id: 0, name: "ママ", type: "adult", phase: "" },

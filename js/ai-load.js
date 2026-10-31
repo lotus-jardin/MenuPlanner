@@ -68,12 +68,12 @@ loadMenuBtn.addEventListener("click", () => {
 
   const parsed = extractJson(text);
   if (!parsed) {
-    loadStatus.textContent = "読み取れませんでした。AIの返事の中にJSON（{ … }の形式のデータ）が見つかりません。AIの返事を、説明文も含めてそのまま全部貼り付けてみてください。";
+    loadStatus.textContent = "読み取れませんでした。AIの返事の形が崩れているようです。AIに「さっきの答えを、```json のコードブロックに入れて出し直して」と送って、出てきたものをもう一度ここに貼り付けてください。";
     loadStatus.classList.add("is-error");
     return;
   }
   if (!Array.isArray(parsed.days)) {
-    loadStatus.textContent = "JSONとしては読み取れましたが、「days」のデータが見つかりませんでした。質問文の形式が守られていない可能性があるので、AIにもう一度、指定した形式で出し直してもらってください。";
+    loadStatus.textContent = "読み取れましたが、献立（days）が見つかりませんでした。AIに「質問文の出力形式のとおりに、```json のコードブロックで出し直して」と送って、出てきたものをもう一度ここに貼り付けてください。";
     loadStatus.classList.add("is-error");
     return;
   }
