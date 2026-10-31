@@ -14,6 +14,33 @@ function removeMarkdownEscapes(text) {
   return text.replace(/\\(.)/g, (match, ch) => ('"\\/bfnrtu'.includes(ch) ? match : ch));
 }
 
+// 「"ingredients":  }」のように、空の配列 [] がまるごと抜けて値が無くなっていることが
+// ある（ChatGPTで「作らない日」に見られた崩れ方）。コロンの直後がいきなり } や , で
+// 終わっている箇所に [] を補う。引用符の中は読み飛ばす。
+function fillMissingValues(text) {
+  let result = "";
+  let i = 0;
+  const n = text.length;
+  while (i < n) {
+    const ch = text[i];
+    if (ch === '"') {
+      let j = i + 1;
+      while (j < n && text[j] !== '"') j += text[j] === "\\" ? 2 : 1;
+      result += text.slice(i, j + 1);
+      i = j + 1;
+      continue;
+    }
+    result += ch;
+    i++;
+    if (ch === ":") {
+      let k = i;
+      while (k < n && /\s/.test(text[k])) k++;
+      if (text[k] === "}" || text[k] === "," || text[k] === "]") result += "[]";
+    }
+  }
+  return result;
+}
+
 // 「"ingredients": { … }, { … }, { … }」のように、本来 [ ... ] で囲むはずの
 // オブジェクトの並びを、角かっこ無しでそのまま書いてしまうことがある
 // （ChatGPTで時々見られる崩れ方）。コロンの直後が「{ … }, { … }」の形に
@@ -132,10 +159,10 @@ function extractJson(text) {
       try {
         return JSON.parse(candidate.replace(/,\s*([}\]])/g, "$1"));
       } catch {
-        // それでも読み取れない場合、「\[」・スマート引用符・配列の角かっこ抜けという
-        // よくある崩れ方を直してから最後にもう一度だけ試す
+        // それでも読み取れない場合、「\[」・スマート引用符・値の抜け・配列の角かっこ抜け
+        // というよくある崩れ方を直してから最後にもう一度だけ試す
         try {
-          const cleaned = removeMarkdownEscapes(normalizeSmartQuotes(candidate));
+          const cleaned = fillMissingValues(removeMarkdownEscapes(normalizeSmartQuotes(candidate)));
           const repaired = wrapMissingArrayBrackets(cleaned).replace(
             /,\s*([}\]])/g,
             "$1"
