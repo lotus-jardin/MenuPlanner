@@ -2,6 +2,7 @@
 // 家にある食材（品名＋量）を書いておくと、AIへの質問文に含めて使い切りを提案してもらえる。
 // 買う食材リストからも自動で除外される。
 const STOCK_STORAGE_KEY = "menuApp.stock";
+const STOCK_SOURCE_LABELS = { receipt: "📷 レシートから", fridge: "📷 冷蔵庫の写真から" };
 
 const stockForm = document.getElementById("stock-form");
 const stockNameInput = document.getElementById("stock-name-input");
@@ -34,6 +35,14 @@ function renderStock() {
     const span = document.createElement("span");
     span.className = "wish-text";
     span.textContent = item.amount ? `${item.name}（${item.amount}）` : item.name;
+    // 写真から登録した物は、どこから来たかがわかるように小さく表示する
+    const sourceLabel = STOCK_SOURCE_LABELS[item.source];
+    if (sourceLabel) {
+      const source = document.createElement("span");
+      source.className = "stock-source";
+      source.textContent = sourceLabel;
+      span.appendChild(source);
+    }
 
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "delete-btn";

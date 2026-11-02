@@ -33,6 +33,13 @@
       <p>評価がたまったら「ふりかえり」タブの「好みと傾向」をAIに更新してもらうと、味付けの好みなども毎回の質問文に反映されます。</p>
     </div>
     <div class="info-section">
+      <h3>■ 写真から食材を登録する仕組み</h3>
+      <p>写真はAIツール（ChatGPTなど）に読み取ってもらい、その返事をこのアプリに貼り付けて登録します。</p>
+      <p><b>レシート・注文履歴の写真</b>（「買い物」タブ）：買い物リストにある物はリストにチェックが付き、リストに無い物は「予定」タブの「今ある食材」に入ります。</p>
+      <p><b>冷蔵庫の写真</b>（「予定」タブ）：読み取った物が「今ある食材」に入ります。すでにある物は量が書き換わります。</p>
+      <p>どちらも、登録する前に「どこに入るか」を一覧で確かめられます。</p>
+    </div>
+    <div class="info-section">
       <h3>■ ホーム画面への追加方法</h3>
       <p>Safariで開いた状態で、画面下の共有ボタン（□↑）→「ホーム画面に追加」を選択してください。アイコンをタップするだけでアプリのように起動できます。</p>
       <p class="info-note">※iPhoneでは、Safari版とホーム画面版のデータは自動で同期されません。追加前に「設定」タブの「データのバックアップ」で保存し、ホーム画面版が空の場合は同じファイルを取り込んでください。</p>
@@ -98,9 +105,9 @@
       <ul id="week-list" class="week-list"></ul>
     </section>
 
-    <section class="card">
+    <section class="card" id="stock-section">
       <h2>今ある食材</h2>
-      <p class="section-note">家にある食材を品名と量で書いておくと、AIが献立を考えるときに使い切れるよう参考にします。買う食材リストからも自動で除かれます。</p>
+      <p class="section-note">家にある食材を品名と量で書いておくと、AIが献立を考えるときに使い切れるよう参考にします。買う食材リストからも自動で除かれます。<br>📷 冷蔵庫の写真や、レシートの写真（買い物リストに無かった物）から登録した物も、ここに入ります。</p>
       <details class="prompt-details photo-import" data-photo-mode="fridge">
         <summary>📷 冷蔵庫の写真から登録する</summary>
         <div class="photo-import-body"></div>
@@ -188,7 +195,7 @@
   <div class="tab-panel" id="tab-shopping" data-tab="shopping" hidden>
     <section class="card">
       <h2>買う食材リスト</h2>
-      <p class="section-note">献立から自動でまとめます。肉・魚 → 野菜 → その他 → 調味料の順に並びます。調味料マスタで「家にある」ものと、「今ある食材」に登録したものは除外されます。できるだけ合計の量も表示します。</p>
+      <p class="section-note">献立から自動でまとめます。肉・魚 → 野菜 → その他 → 調味料の順に並びます。調味料マスタで「家にある」ものと、「今ある食材」に登録したものは除外されます。できるだけ合計の量も表示します。<br>買った物は、チェックを入れるか、下の 📷 レシートの写真から自動でチェックできます。</p>
       <p id="budget-estimate" class="budget-estimate"></p>
       <details class="prompt-details photo-import" data-photo-mode="receipt">
         <summary>📷 レシート・注文履歴の写真で、買った物をチェックする</summary>

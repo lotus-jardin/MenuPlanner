@@ -1072,3 +1072,74 @@ a.primary-btn.next-tab-btn {
 .photo-review[hidden] {
   display: none;
 }
+
+.photo-flow {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  background: #fffaf5;
+  border: 1px solid #f5e3d0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.photo-flow li + li {
+  margin-top: 6px;
+}
+
+.photo-badge {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.photo-badge.is-check {
+  background: #e6f4ea;
+  color: #2e7d32;
+}
+
+.photo-badge.is-add {
+  background: #fff1e0;
+  color: #bd7d30;
+}
+
+.photo-badge.is-update {
+  background: #e8f0fb;
+  color: #3367a6;
+}
+
+.photo-badge.is-skip {
+  background: #eee;
+  color: #888;
+}
+
+.photo-item.is-unchecked .photo-item-inputs input {
+  color: #aaa;
+}
+
+.photo-summary {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  background: #fff1e0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.photo-after-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.stock-source {
+  display: block;
+  font-size: 0.75rem;
+  color: #999;
+}

@@ -5,14 +5,24 @@
 //   fridge ：「今ある食材」に追加（同じ名前がすでにあれば量を書き換える）。
 // <details class="photo-import" data-photo-mode="receipt|fridge"> の中身はここで作る。
 
+// intro は固定の文言だけなので innerHTML で入れている（利用者の入力は入らない）
 const PHOTO_IMPORT_TEXT = {
   receipt: {
-    intro:
-      "レシートや、ネットスーパーの注文履歴・領収書の画面写真（スクリーンショット）から、買った物を読み取ります。名前や住所が写っている部分は切り取ってから送っても大丈夫です。",
+    intro: `<p class="section-note">レシートや、ネットスーパーの注文履歴・領収書の画面写真から、買った物を読み取ります。</p>
+      <ul class="photo-flow">
+        <li><span class="photo-badge is-check">✓ チェック</span>買い物リストにある物 → このリストにチェックが付きます</li>
+        <li><span class="photo-badge is-add">＋ 追加</span>リストに無い物 → 「予定」タブの「今ある食材」に入ります</li>
+      </ul>
+      <p class="section-note">登録する前に、どれがどこに入るかを一覧で確かめられます。名前や住所が写っている部分は切り取ってから送っても大丈夫です。</p>`,
     sendStep: "② AIツール（ChatGPTなど）に写真を付けて、質問文を貼り付けて送る",
   },
   fridge: {
-    intro: "冷蔵庫・冷凍庫・野菜室の写真から、今ある食材を読み取ります。奥の物や容器の中身は見落としやすいので、あとで足してください。",
+    intro: `<p class="section-note">冷蔵庫・冷凍庫・野菜室の写真から、今ある食材を読み取ります。</p>
+      <ul class="photo-flow">
+        <li><span class="photo-badge is-add">＋ 追加</span>読み取った物 → この下の「今ある食材」の一覧に入ります</li>
+        <li><span class="photo-badge is-update">↻ 更新</span>すでに一覧にある物 → 量が書き換わります</li>
+      </ul>
+      <p class="section-note">奥の物や容器の中身は見落としやすいので、あとで手で足してください。</p>`,
     sendStep: "② AIツール（ChatGPTなど）に写真を付けて（何枚でも可）、質問文を貼り付けて送る",
   },
 };
@@ -119,7 +129,7 @@ function setupPhotoImport(root) {
   const body = root.querySelector(".photo-import-body");
 
   body.innerHTML = `
-    <p class="section-note"></p>
+    <div class="photo-intro"></div>
     <div class="ai-step">
       <p class="ai-step-title">① 質問文を作ってコピーする</p>
       <button type="button" class="primary-btn photo-make-btn">質問文を作ってコピー</button>
@@ -136,17 +146,20 @@ function setupPhotoImport(root) {
       <p class="load-status photo-load-status" aria-live="polite"></p>
     </div>
     <div class="photo-review" hidden>
-      <p class="ai-step-title">④ 内容を確かめて登録する（間違いは直す・いらない物はチェックを外す）</p>
+      <p class="ai-step-title">④ どこに入るか確かめて登録する</p>
+      <p class="section-note">読み間違いは名前や量を直せます。いらない物はチェックを外してください。</p>
       <ul class="photo-item-list"></ul>
       <label class="photo-total-row" hidden>
         <input type="checkbox" class="photo-total-checkbox">
         <span class="photo-total-label"></span>
       </label>
+      <p class="photo-summary" aria-live="polite"></p>
       <button type="button" class="primary-btn photo-apply-btn">登録する</button>
       <button type="button" class="secondary-btn photo-cancel-btn">やめる</button>
     </div>
-    <p class="copy-status photo-apply-status" aria-live="polite"></p>`;
-  body.querySelector(".section-note").textContent = text.intro;
+    <p class="copy-status photo-apply-status" aria-live="polite"></p>
+    <div class="photo-after-links"></div>`;
+  body.querySelector(".photo-intro").innerHTML = text.intro;
   body.querySelector(".photo-send-step").textContent = text.sendStep;
 
   const makeBtn = body.querySelector(".photo-make-btn");
@@ -163,12 +176,15 @@ function setupPhotoImport(root) {
   const applyBtn = body.querySelector(".photo-apply-btn");
   const cancelBtn = body.querySelector(".photo-cancel-btn");
   const applyStatus = body.querySelector(".photo-apply-status");
+  const summaryEl = body.querySelector(".photo-summary");
+  const afterLinks = body.querySelector(".photo-after-links");
 
   let pendingTotal = 0;
 
   makeBtn.addEventListener("click", async () => {
     promptOutput.value = buildPhotoImportPrompt(mode);
     applyStatus.textContent = "";
+    afterLinks.innerHTML = "";
     try {
       await navigator.clipboard.writeText(promptOutput.value);
       promptOutput.hidden = true;
@@ -183,14 +199,36 @@ function setupPhotoImport(root) {
     }
   });
 
-  // 読み取った1品ぶんの行（チェック・名前・量・どこに入るか）
-  function describeTarget(name) {
+  // 読み取った1品が、登録するとどこに入るか
+  function getTarget(name) {
     if (mode === "receipt") {
       const match = findSameIngredientName(name, getCurrentShoppingNames());
-      return match ? `買う食材リストの「${match}」にチェック` : "今ある食材に追加";
+      if (match) return { kind: "check", badge: "✓ チェック", text: `買い物リストの「${match}」にチェック` };
     }
     const existing = findSameIngredientName(name, loadStock().map((item) => item.name));
-    return existing ? `今ある食材「${existing}」の量を書き換え` : "今ある食材に追加";
+    if (existing) {
+      return {
+        kind: "update",
+        badge: "↻ 更新",
+        text: mode === "fridge" ? `今ある食材の「${existing}」の量を書き換え` : `今ある食材の「${existing}」に量を足す`,
+      };
+    }
+    return { kind: "add", badge: "＋ 追加", text: "今ある食材に追加" };
+  }
+
+  // 「登録する」を押すと何が起きるかを、ボタンのすぐ上にまとめて出す
+  function updateSummary() {
+    const counts = { check: 0, add: 0, update: 0 };
+    for (const li of itemList.querySelectorAll(".photo-item")) {
+      if (li.querySelector(".photo-item-check").checked) counts[li.dataset.kind]++;
+    }
+    const parts = [];
+    if (counts.check) parts.push(`買い物リストの${counts.check}品にチェック`);
+    if (counts.add) parts.push(`今ある食材に${counts.add}品を追加`);
+    if (counts.update) parts.push(`今ある食材の${counts.update}品を更新`);
+    summaryEl.textContent = parts.length
+      ? `「登録する」を押すと：${parts.join("、")}します。`
+      : "登録する物が選ばれていません。";
   }
 
   function appendItemRow(item) {
@@ -225,10 +263,20 @@ function setupPhotoImport(root) {
     if (!item.forCooking) notes.push("材料以外");
     if (item.unsure) notes.push("自信なし");
     const updateTarget = () => {
-      target.textContent = `${notes.length ? `（${notes.join("・")}）` : ""}→ ${describeTarget(nameInput.value.trim())}`;
+      const t = getTarget(nameInput.value.trim());
+      li.dataset.kind = t.kind;
+      target.innerHTML = "";
+      const badge = document.createElement("span");
+      badge.className = `photo-badge ${checkbox.checked ? `is-${t.kind}` : "is-skip"}`;
+      badge.textContent = checkbox.checked ? t.badge : "登録しない";
+      const desc = document.createElement("span");
+      desc.textContent = `${notes.length ? `（${notes.join("・")}）` : ""}${checkbox.checked ? t.text : ""}`;
+      target.append(badge, desc);
+      li.classList.toggle("is-unchecked", !checkbox.checked);
+      updateSummary();
     };
     nameInput.addEventListener("input", updateTarget);
-    updateTarget();
+    checkbox.addEventListener("change", updateTarget);
 
     const row = document.createElement("div");
     row.className = "photo-item-inputs";
@@ -237,6 +285,7 @@ function setupPhotoImport(root) {
     li.dataset.category = item.category;
     li.append(checkbox, fields);
     itemList.appendChild(li);
+    updateTarget();
   }
 
   loadBtn.addEventListener("click", () => {
@@ -263,7 +312,9 @@ function setupPhotoImport(root) {
 
     loadStatusEl.textContent = `${result.items.length}品を読み取りました。下で確かめてから「登録する」を押してください。`;
     loadStatusEl.classList.remove("is-error");
+    afterLinks.innerHTML = "";
     review.hidden = false;
+    updateSummary();
   });
 
   function closeReview() {
@@ -315,7 +366,7 @@ function setupPhotoImport(root) {
         }
         updatedCount++;
       } else {
-        stock.unshift({ id: Date.now() + index, name: item.name, amount: item.amount });
+        stock.unshift({ id: Date.now() + index, name: item.name, amount: item.amount, source: mode });
         addedCount++;
       }
     });
@@ -337,15 +388,41 @@ function setupPhotoImport(root) {
     renderActualCostDiff();
 
     const parts = [];
-    if (checkedCount) parts.push(`買う食材リストに${checkedCount}件チェック`);
-    if (addedCount) parts.push(`今ある食材に${addedCount}件追加`);
-    if (updatedCount) parts.push(`今ある食材の${updatedCount}件を更新`);
+    if (checkedCount) parts.push(`買い物リストの${checkedCount}品にチェック`);
+    if (addedCount) parts.push(`今ある食材に${addedCount}品を追加`);
+    if (updatedCount) parts.push(`今ある食材の${updatedCount}品を更新`);
     closeReview();
     applyStatus.textContent = parts.length
       ? `${parts.join("、")}しました${costText}。`
       : `登録する物が選ばれていませんでした${costText}。`;
     applyStatus.classList.remove("is-error");
+
+    // 登録した先を見に行けるボタン（レシートの「今ある食材」は別のタブにあるので特に必要）
+    afterLinks.innerHTML = "";
+    if (checkedCount) afterLinks.appendChild(createJumpLink("買い物リストを見る ↓", "shopping", "shopping-list"));
+    if (addedCount || updatedCount) {
+      afterLinks.appendChild(
+        mode === "receipt"
+          ? createJumpLink("「予定」タブの今ある食材を見る →", "plan", "stock-section")
+          : createJumpLink("今ある食材の一覧を見る ↓", "plan", "stock-list")
+      );
+    }
   });
+}
+
+// 別のタブ（または同じタブの下の方）の場所へ移動するボタン
+function createJumpLink(label, tabName, elementId) {
+  const link = document.createElement("a");
+  link.href = `#${tabName}`;
+  link.className = "secondary-btn small-btn photo-jump-link";
+  link.textContent = label;
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (location.hash !== `#${tabName}`) location.hash = tabName;
+    // タブを切り替えると一番上に戻るので、そのあとで目的の場所まで動かす
+    setTimeout(() => document.getElementById(elementId).scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+  });
+  return link;
 }
 
 for (const root of document.querySelectorAll(".photo-import[data-photo-mode]")) {
