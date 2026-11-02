@@ -7,7 +7,7 @@
 
 // アプリのバージョン。「？」パネルに表示して、スマホに新しい版が届いているか確かめるのに使う。
 // 更新するときは sw.js の CACHE_NAME の番号も同じにそろえる。
-const APP_VERSION = "v24";
+const APP_VERSION = "v25";
 
 const FAMILY_STORAGE_KEY = "menuApp.familyMembers";
 const DEFAULT_FAMILY_MEMBERS = [

@@ -101,6 +101,10 @@
     <section class="card">
       <h2>今ある食材</h2>
       <p class="section-note">家にある食材を品名と量で書いておくと、AIが献立を考えるときに使い切れるよう参考にします。買う食材リストからも自動で除かれます。</p>
+      <details class="prompt-details photo-import" data-photo-mode="fridge">
+        <summary>📷 冷蔵庫の写真から登録する</summary>
+        <div class="photo-import-body"></div>
+      </details>
       <form id="stock-form" class="stock-form">
         <input type="text" id="stock-name-input" placeholder="品名（例：にんじん）" autocomplete="off" required>
         <div class="stock-form-row">
@@ -186,6 +190,10 @@
       <h2>買う食材リスト</h2>
       <p class="section-note">献立から自動でまとめます。肉・魚 → 野菜 → その他 → 調味料の順に並びます。調味料マスタで「家にある」ものと、「今ある食材」に登録したものは除外されます。できるだけ合計の量も表示します。</p>
       <p id="budget-estimate" class="budget-estimate"></p>
+      <details class="prompt-details photo-import" data-photo-mode="receipt">
+        <summary>📷 レシート・注文履歴の写真で、買った物をチェックする</summary>
+        <div class="photo-import-body"></div>
+      </details>
       <form id="extra-shopping-form" class="stock-form">
         <input type="text" id="extra-shopping-name-input" placeholder="ほしいもの（例：ラップ）" autocomplete="off" required>
         <div class="stock-form-row">
@@ -301,6 +309,7 @@
 <script src="js/period-notes.js"></script>
 <script src="js/side-dishes.js"></script>
 <script src="js/save-menu.js"></script>
+<script src="js/photo-import.js"></script>
 <script src="js/review.js"></script>
 <script src="js/onboarding.js"></script>
 <script src="js/tabs.js"></script>

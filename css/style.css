@@ -984,3 +984,91 @@ a.primary-btn.next-tab-btn {
 .onboarding-steps a {
   color: #bd7d30;
 }
+
+/* ===== 写真から登録 ===== */
+.photo-import {
+  margin: 0 0 12px;
+}
+
+.photo-import-body {
+  padding-top: 8px;
+}
+
+.photo-item-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.photo-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0e8e0;
+}
+
+.photo-item-check {
+  width: 22px;
+  height: 22px;
+  margin-top: 8px;
+  flex-shrink: 0;
+  accent-color: #ec9c3c;
+}
+
+.photo-item-fields {
+  flex: 1;
+  min-width: 0;
+}
+
+.photo-item-inputs {
+  display: flex;
+  gap: 6px;
+}
+
+.photo-item-inputs input {
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+}
+
+.photo-item-name {
+  flex: 3;
+}
+
+.photo-item-amount {
+  flex: 2;
+}
+
+.photo-item-target {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.photo-total-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+
+.photo-total-row input {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: #ec9c3c;
+}
+
+.photo-review .secondary-btn {
+  margin-left: 8px;
+}
+
+.photo-total-row[hidden],
+.photo-review[hidden] {
+  display: none;
+}
