@@ -88,6 +88,7 @@ loadMenuBtn.addEventListener("click", () => {
       continue;
     }
     const rawIngredients = day.ingredients || day.vegetables;
+    const previousEntry = menuMap[day.date];
     menuMap[day.date] = {
       dish: day.dish || null,
       note: day.note || "",
@@ -95,6 +96,10 @@ loadMenuBtn.addEventListener("click", () => {
         ? rawIngredients.filter(Boolean).map(normalizeIngredient)
         : [],
     };
+    // 同じ料理を読み込み直したときは評価を残す（違う料理になったら評価は消える）
+    if (previousEntry && previousEntry.feedback && previousEntry.dish && previousEntry.dish === day.dish) {
+      menuMap[day.date].feedback = previousEntry.feedback;
+    }
     updatedDateKeys.push(day.date);
   }
   saveMenu(menuMap);
@@ -131,23 +136,93 @@ loadMenuBtn.addEventListener("click", () => {
   loadStatus.textContent = statusLines.join("\n");
   loadStatus.classList.toggle("is-error", hasWarning);
   aiResponseInput.value = "";
+  // 読み込めたら返事の欄は閉じておく（もう一度使うときは「別の返事を読み込む」で開く）
+  responseArea.hidden = true;
+  reopenResponseBtn.hidden = false;
+  updatePrimaryButton();
+  renderReview();
+  renderOnboarding();
 });
+
+// 「次に押すボタン」を1つだけ目立たせる：返事を貼る前は「質問文を作ってコピー」、
+// 貼ったあとは「読み込む」を目立たせる
+const responseArea = document.getElementById("response-area");
+const reopenResponseBtn = document.getElementById("reopen-response-btn");
+
+function updatePrimaryButton() {
+  const hasResponse = aiResponseInput.value.trim() !== "";
+  loadMenuBtn.classList.toggle("primary-btn", hasResponse);
+  makePromptBtn.classList.toggle("primary-btn", !hasResponse);
+}
+
+aiResponseInput.addEventListener("input", updatePrimaryButton);
+reopenResponseBtn.addEventListener("click", () => {
+  responseArea.hidden = false;
+  reopenResponseBtn.hidden = true;
+  loadStatus.textContent = "";
+  aiResponseInput.focus();
+});
+updatePrimaryButton();
 
 function formatDateLabel(date) {
   return `${date.getMonth() + 1}/${date.getDate()}（${DAY_LABELS[(date.getDay() + 6) % 7]}）`;
 }
 
+const menuEmpty = document.getElementById("menu-empty");
+
+// 食べたあとの評価ボタン（押しても押さなくてもよい）。押した内容は次の質問文に反映される。
+function createFeedbackRow(dateKey, entry) {
+  const feedback = entry.feedback || {};
+  const row = document.createElement("div");
+  row.className = "feedback-row";
+
+  const chips = [
+    { label: "👍 おいしい", pressed: feedback.rating === "good", patch: () => ({ rating: feedback.rating === "good" ? undefined : "good" }) },
+    { label: "👎 いまいち", pressed: feedback.rating === "bad", patch: () => ({ rating: feedback.rating === "bad" ? undefined : "bad" }) },
+  ];
+  if (hasChild() || feedback.kidAte) {
+    chips.push({ label: "子どもが食べた", pressed: Boolean(feedback.kidAte), patch: () => ({ kidAte: !feedback.kidAte }) });
+  }
+  chips.push({ label: "作らなかった", pressed: Boolean(feedback.skipped), patch: () => ({ skipped: !feedback.skipped }) });
+
+  for (const chip of chips) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "feedback-chip";
+    btn.textContent = chip.label;
+    btn.setAttribute("aria-pressed", String(chip.pressed));
+    btn.addEventListener("click", () => {
+      setDishFeedback(dateKey, chip.patch());
+      renderMenu();
+      renderPromptPreview();
+      renderReview();
+    });
+    row.appendChild(btn);
+  }
+
+  if (feedback.changed) {
+    const changed = document.createElement("span");
+    changed.className = "feedback-changed";
+    changed.textContent = "料理を変更";
+    row.appendChild(changed);
+  }
+  return row;
+}
+
 function renderMenu() {
   const menuMap = loadMenu();
   menuList.innerHTML = "";
+  let shown = 0;
 
   for (const date of getPeriodDates()) {
     const dateKey = toDateKey(date);
     const entry = menuMap[dateKey];
     if (!entry) continue;
+    shown++;
 
     const li = document.createElement("li");
     li.dataset.dateKey = dateKey;
+    if (entry.feedback && entry.feedback.skipped) li.classList.add("is-skipped");
 
     const dateLabel = document.createElement("span");
     dateLabel.className = "menu-date";
@@ -157,7 +232,13 @@ function renderMenu() {
     const dishBtn = document.createElement("button");
     dishBtn.type = "button";
     dishBtn.className = "menu-dish-btn";
-    dishBtn.textContent = entry.dish || "（作らない日・タップで入力）";
+    dishBtn.setAttribute("aria-label", `${entry.dish || "作らない日"}（押すと料理名と食材を編集できます）`);
+    const dishText = document.createElement("span");
+    dishText.textContent = entry.dish || "（作らない日・タップで入力）";
+    const editHint = document.createElement("span");
+    editHint.className = "edit-hint";
+    editHint.textContent = "✎ 編集";
+    dishBtn.append(dishText, editHint);
     dishBtn.addEventListener("click", () => startEditingDish(dateKey, date));
     li.appendChild(dishBtn);
 
@@ -168,9 +249,12 @@ function renderMenu() {
       li.appendChild(noteLabel);
     }
 
+    if (entry.dish) li.appendChild(createFeedbackRow(dateKey, entry));
+
     menuList.appendChild(li);
   }
 
+  menuEmpty.style.display = shown === 0 ? "block" : "none";
   renderShoppingList();
 }
 
@@ -243,9 +327,17 @@ function startEditingDish(dateKey, date) {
         const known = knownByName.get(norm.name);
         return known ? { ...norm, category: known.category, price: known.price } : norm;
       });
-    current[dateKey] = { ...current[dateKey], dish: newDish || null, ingredients: newIngredients };
+    const previous = current[dateKey] || {};
+    const updated = { ...previous, dish: newDish || null, ingredients: newIngredients };
+    // 料理名を手で変えたら「料理を変更」として記録する（AIの案と実際に作った物の違いがわかるように）
+    if (previous.dish && newDish && newDish !== previous.dish) {
+      updated.feedback = { ...(previous.feedback || {}), changed: true };
+    }
+    current[dateKey] = updated;
     saveMenu(current);
     renderMenu();
+    renderPromptPreview();
+    renderReview();
 
     // AIの返事を読み込んだときだけでなく、手で食材を書き換えたときも
     // 登録済みのアレルギー・苦手食材と似た名前がないか確認する

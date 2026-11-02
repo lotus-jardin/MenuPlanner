@@ -11,9 +11,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="has-tab-bar">
 <header class="app-header">
-  <a href="index.html" class="back-link">← 戻る</a>
+  <a href="index.html#settings" class="back-link">← 戻る</a>
   <h1>家族構成</h1>
 </header>
 
@@ -39,6 +39,14 @@
     <ul id="family-list" class="pantry-list"></ul>
   </section>
 </main>
+
+<nav class="tab-bar" aria-label="画面の切り替え">
+  <a href="index.html#plan" data-tab="plan">予定</a>
+  <a href="index.html#menu" data-tab="menu">献立</a>
+  <a href="index.html#shopping" data-tab="shopping">買い物</a>
+  <a href="index.html#review" data-tab="review">ふりかえり</a>
+  <a href="index.html#settings" data-tab="settings" aria-current="page">設定</a>
+</nav>
 
 <script src="js/shared.js"></script>
 <script src="js/family.js"></script>

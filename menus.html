@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>献立リスト - 献立アプリ</title>
+<title>お気に入りの献立 - 献立アプリ</title>
 <meta name="theme-color" content="#ec9c3c">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -11,49 +11,28 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="has-tab-bar">
 <header class="app-header">
-  <a href="index.html" class="back-link">← 戻る</a>
-  <h1>献立リスト</h1>
+  <a href="index.html#settings" class="back-link">← 戻る</a>
+  <h1>お気に入りの献立</h1>
 </header>
 
 <main>
   <section class="card">
-    <p class="section-note">保存した献立の一覧です。タップすると、その期間を表示した状態でトップ画面に戻ります。</p>
+    <p class="section-note">お気に入りに登録した献立の一覧です。タップすると、その期間の献立を開きます。</p>
     <ul id="saved-menu-list" class="saved-menu-list"></ul>
-    <p id="saved-menu-empty" class="empty-message">まだ保存した献立がありません。トップ画面の「この期間の献立を保存」から保存できます。</p>
+    <p id="saved-menu-empty" class="empty-message">まだありません。「献立」タブの「この期間をお気に入りに登録」から登録できます。</p>
   </section>
 
-  <section class="card">
-    <h2>好みと傾向を分析する</h2>
-    <p class="section-note">保存した献立と、その期間の「結果・メモ」をもとに、AIに傾向を分析してもらいます。結果は下の「好みと傾向」欄に入り、自由に書き直せます。次回以降の献立づくりにも使われます。</p>
-
-    <div class="ai-step">
-      <p class="ai-step-title">① 質問文を作る</p>
-      <button type="button" id="make-trend-prompt-btn">質問文を作る</button>
-    </div>
-
-    <div id="trend-prompt-area" class="ai-step" hidden>
-      <p class="ai-step-title">② コピーして、お使いのAIツールに貼り付けて送る</p>
-      <textarea id="trend-prompt-output" class="ai-textarea" readonly rows="4"></textarea>
-      <button type="button" id="copy-trend-prompt-btn">コピーする</button>
-      <p id="copy-trend-status" class="copy-status" aria-live="polite"></p>
-    </div>
-
-    <div class="ai-step">
-      <p class="ai-step-title">③ AIの返事をここに貼り付ける</p>
-      <textarea id="trend-response-input" class="ai-textarea" rows="4" placeholder="ここに貼り付け"></textarea>
-      <button type="button" id="load-trend-btn">④ 読み込む</button>
-      <p id="load-trend-status" class="load-status" aria-live="polite"></p>
-    </div>
-  </section>
-
-  <section class="card">
-    <h2>好みと傾向</h2>
-    <p class="section-note">ここに書かれている内容は、今後AIに献立を考えてもらうときの質問文にも毎回含まれます。自由に書き直せます。</p>
-    <textarea id="preference-profile-input" class="ai-textarea" rows="6" placeholder="例：甘辛い味付けが好評。魚料理は週2回くらいが好ましい。"></textarea>
-  </section>
 </main>
+
+<nav class="tab-bar" aria-label="画面の切り替え">
+  <a href="index.html#plan" data-tab="plan">予定</a>
+  <a href="index.html#menu" data-tab="menu">献立</a>
+  <a href="index.html#shopping" data-tab="shopping">買い物</a>
+  <a href="index.html#review" data-tab="review">ふりかえり</a>
+  <a href="index.html#settings" data-tab="settings" aria-current="page">設定</a>
+</nav>
 
 <script src="js/shared.js"></script>
 <script src="js/menus.js"></script>

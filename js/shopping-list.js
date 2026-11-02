@@ -264,6 +264,17 @@ function renderShoppingList() {
   recomputeBudgetEstimate();
 }
 
+// チェックの有無に関係なく、この期間に買う食材の推定予算の合計（実際の金額との比較に使う）
+function getEstimatedBudgetTotal() {
+  const { grouped } = getShoppingGroups();
+  let total = 0;
+  for (const { items, remainingRatio } of grouped.values()) {
+    const rawTotal = items.reduce((sum, item) => sum + (item.price || 0), 0);
+    total += remainingRatio != null ? Math.round(rawTotal * remainingRatio) : rawTotal;
+  }
+  return total;
+}
+
 // 買う食材リストを、パートナーなどに頼みやすいテキストにして共有する機能。
 // すでにチェック済み（買った）ものは除き、まだ買っていない分だけをまとめる。
 function buildShoppingShareText() {

@@ -2,7 +2,7 @@
 // 「まずネットから最新を取りに行き、取れなければキャッシュ（保存済み）を使う」方式にして、
 // 電波があるときは常に最新版が表示されるようにする。
 // 番号は js/shared.js の APP_VERSION と同じにそろえる。
-const CACHE_NAME = "menu-app-v23";
+const CACHE_NAME = "menu-app-v24";
 const FILES_TO_CACHE = [
   "./",
   "./index.html",
@@ -18,6 +18,11 @@ const FILES_TO_CACHE = [
   "./js/shopping-list.js",
   "./js/info-panel.js",
   "./js/wishlist.js",
+  "./js/feedback.js",
+  "./js/preference.js",
+  "./js/review.js",
+  "./js/onboarding.js",
+  "./js/tabs.js",
   "./js/ai-prompt.js",
   "./js/ai-parse.js",
   "./js/ai-load.js",

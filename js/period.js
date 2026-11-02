@@ -185,6 +185,8 @@ function renderAll() {
   renderMenu(); // この中でrenderShoppingList()も呼ばれる
   renderPeriodNotes();
   renderSideDishes();
+  renderPromptPreview();
+  renderReview();
 }
 
 function shiftPeriod(direction) {
@@ -211,7 +213,13 @@ function shiftPeriod(direction) {
 // 他ファイルで定義されているが、この関数はボタン操作時にしか呼ばれないので問題ない。
 function migratePeriodScopedData(oldPeriodKey, newPeriodKey) {
   if (oldPeriodKey === newPeriodKey) return;
-  const periodScopedStorageKeys = [PERIOD_NOTES_KEY, SIDE_DISH_KEY, EXTRA_SHOPPING_KEY, SHOPPING_CHECKED_KEY];
+  const periodScopedStorageKeys = [
+    PERIOD_NOTES_KEY,
+    PERIOD_ACTUAL_COST_KEY,
+    SIDE_DISH_KEY,
+    EXTRA_SHOPPING_KEY,
+    SHOPPING_CHECKED_KEY,
+  ];
   for (const storageKey of periodScopedStorageKeys) {
     const raw = localStorage.getItem(storageKey);
     if (!raw) continue;

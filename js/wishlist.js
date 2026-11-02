@@ -64,3 +64,18 @@ form.addEventListener("submit", (event) => {
 });
 
 render(loadWishes());
+
+// 他の画面（ふりかえりの「お気に入り料理」など）からメモに追加する。同じ名前がすでにあれば何もしない
+function hasWish(text) {
+  return loadWishes().some((w) => w.text === text);
+}
+
+function addWish(text) {
+  const trimmed = text.trim();
+  if (!trimmed || hasWish(trimmed)) return false;
+  const wishes = loadWishes();
+  wishes.unshift({ id: Date.now(), text: trimmed });
+  saveWishes(wishes);
+  render(wishes);
+  return true;
+}

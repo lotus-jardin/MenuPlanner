@@ -203,15 +203,15 @@ main {
 .add-form button {
   padding: 10px 16px;
   font-size: 1rem;
-  background: #ec9c3c;
-  color: white;
-  border: none;
+  background: white;
+  color: #bd7d30;
+  border: 1px solid #ec9c3c;
   border-radius: 8px;
   cursor: pointer;
 }
 
 .add-form button:active {
-  background: #bd7d30;
+  background: #fff1e0;
 }
 
 .wish-list {
@@ -346,15 +346,15 @@ main .card + .card {
   width: 100%;
   padding: 10px 16px;
   font-size: 1rem;
-  background: #ec9c3c;
-  color: white;
-  border: none;
+  background: white;
+  color: #bd7d30;
+  border: 1px solid #ec9c3c;
   border-radius: 8px;
   cursor: pointer;
 }
 
 .stock-form > button:active {
-  background: #bd7d30;
+  background: #fff1e0;
 }
 
 .stock-form-row {
@@ -379,16 +379,16 @@ main .card + .card {
 .stock-form-row button {
   padding: 10px 16px;
   font-size: 1rem;
-  background: #ec9c3c;
-  color: white;
-  border: none;
+  background: white;
+  color: #bd7d30;
+  border: 1px solid #ec9c3c;
   border-radius: 8px;
   cursor: pointer;
   flex-shrink: 0;
 }
 
 .stock-form-row button:active {
-  background: #bd7d30;
+  background: #fff1e0;
 }
 
 .budget-estimate {
@@ -444,9 +444,10 @@ main .card + .card {
 }
 
 .member-btn.is-selected {
-  background: #ec9c3c;
+  background: #fff1e0;
   border-color: #ec9c3c;
-  color: white;
+  color: #333;
+  font-weight: bold;
 }
 
 .no-cook-btn.is-selected {
@@ -469,15 +470,15 @@ main .card + .card {
 .ai-step button {
   padding: 10px 16px;
   font-size: 0.95rem;
-  background: #ec9c3c;
-  color: white;
-  border: none;
+  background: white;
+  color: #bd7d30;
+  border: 1px solid #ec9c3c;
   border-radius: 8px;
   cursor: pointer;
 }
 
 .ai-step button:active {
-  background: #bd7d30;
+  background: #fff1e0;
 }
 
 .ai-textarea {
@@ -755,4 +756,231 @@ main .card + .card {
 .saved-menu-range {
   font-size: 0.8rem;
   color: #767676;
+}
+
+/* ===== タブ（画面下） ===== */
+body.has-tab-bar {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+
+.tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: flex;
+  background: white;
+  border-top: 1px solid #f0e0d0;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.tab-bar a {
+  flex: 1;
+  text-align: center;
+  padding: 14px 2px;
+  font-size: 0.8rem;
+  color: #777;
+  text-decoration: none;
+  border-top: 3px solid transparent;
+}
+
+.tab-bar a[aria-current="page"] {
+  color: #ec9c3c;
+  font-weight: bold;
+  border-top-color: #ec9c3c;
+}
+
+.tab-panel[hidden] {
+  display: none;
+}
+
+/* ===== ボタンの強弱：次に押すボタンだけ塗りつぶし、それ以外は枠線 ===== */
+button.primary-btn,
+a.primary-btn,
+.ai-step button.primary-btn {
+  display: inline-block;
+  padding: 12px 18px;
+  font-size: 1rem;
+  font-weight: bold;
+  background: #ec9c3c;
+  color: white;
+  border: 1px solid #ec9c3c;
+  border-radius: 8px;
+  text-decoration: none;
+  text-align: center;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button.primary-btn:active,
+a.primary-btn:active {
+  background: #bd7d30;
+}
+
+button.secondary-btn,
+a.secondary-btn,
+.link-btn {
+  display: inline-block;
+  padding: 10px 16px;
+  font-size: 0.95rem;
+  background: white;
+  color: #bd7d30;
+  border: 1px solid #ec9c3c;
+  border-radius: 8px;
+  text-decoration: none;
+  text-align: center;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button.secondary-btn:active,
+a.secondary-btn:active {
+  background: #fff1e0;
+}
+
+.small-btn,
+button.secondary-btn.small-btn {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.next-tab-btn,
+a.primary-btn.next-tab-btn {
+  display: block;
+  margin: 16px 0 0;
+}
+
+/* ===== 献立の評価 ===== */
+.feedback-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+  align-items: center;
+}
+
+.feedback-chip {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  border: 1px solid #ddd;
+  background: white;
+  color: #666;
+  border-radius: 999px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.feedback-chip[aria-pressed="true"] {
+  background: #fff1e0;
+  border-color: #ec9c3c;
+  color: #333;
+  font-weight: bold;
+}
+
+.feedback-changed {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.edit-hint {
+  margin-left: 6px;
+  font-size: 0.75rem;
+  color: #bbb;
+  white-space: nowrap;
+}
+
+.menu-list li.is-skipped .menu-dish-btn > span:first-child {
+  color: #aaa;
+  text-decoration: line-through;
+}
+
+/* ===== 質問文の中身の要約・折りたたみ ===== */
+.prompt-preview {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  background: #fffaf5;
+  border: 1px solid #f5e3d0;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.prompt-preview li + li {
+  margin-top: 4px;
+}
+
+.prompt-details {
+  margin-top: 8px;
+}
+
+.prompt-details summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #bd7d30;
+  padding: 6px 0;
+}
+
+.trend-details {
+  margin-top: 16px;
+  border-top: 1px solid #f0e8e0;
+  padding-top: 8px;
+}
+
+/* ===== ふりかえり ===== */
+.stats-list {
+  margin: 0;
+}
+
+.stats-list dt {
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #555;
+  margin-top: 10px;
+}
+
+.stats-list dt:first-child {
+  margin-top: 0;
+}
+
+.stats-list dd {
+  margin: 2px 0 0;
+  font-size: 0.95rem;
+}
+
+.field-label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #555;
+  margin: 12px 0 6px;
+}
+
+.favorite-in-memo {
+  font-size: 0.8rem;
+  color: #888;
+  flex-shrink: 0;
+}
+
+/* ===== お知らせ・はじめての案内 ===== */
+.notice-card {
+  border-left: 4px solid #ec9c3c;
+}
+
+.notice-text {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+}
+
+.onboarding-steps {
+  margin: 0 0 12px;
+  padding-left: 1.4em;
+  line-height: 1.8;
+}
+
+.onboarding-steps a {
+  color: #bd7d30;
 }

@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="has-tab-bar">
 <header class="app-header">
   <div class="header-title-row">
     <h1>献立アプリ</h1>
@@ -28,18 +28,19 @@
       <p>献立を考えてもらうには、無料で使えるAIツールが別途必要です。このアプリで作った質問文をコピーしてAIツールに貼り付け、返ってきた答えをこのアプリに貼り戻して使います。</p>
     </div>
     <div class="info-section">
-      <h3>■ 好みの傾向について</h3>
-      <p>あなたの好みの傾向を蓄積するには、「献立リスト」ページの「好みと傾向を分析する」を利用してください。保存した献立や感想をAIが分析し、その結果を「好みと傾向」欄に保存できます。この内容は今後の献立提案に毎回反映されるため、定期的に更新するのがおすすめです。</p>
+      <h3>■ 使うほど好みに近づく仕組み</h3>
+      <p>「献立」タブで、食べたあとに 👍・👎・「子どもが食べた」を押しておくと、次に質問文を作るときに「好評だった料理」「いまいちだった料理」としてAIに伝わります。最近出た料理も自動で伝えるので、同じ料理が続きにくくなります。</p>
+      <p>評価がたまったら「ふりかえり」タブの「好みと傾向」をAIに更新してもらうと、味付けの好みなども毎回の質問文に反映されます。</p>
     </div>
     <div class="info-section">
       <h3>■ ホーム画面への追加方法</h3>
       <p>Safariで開いた状態で、画面下の共有ボタン（□↑）→「ホーム画面に追加」を選択してください。アイコンをタップするだけでアプリのように起動できます。</p>
-      <p class="info-note">※iPhoneでは、Safari版とホーム画面版のデータは自動で同期されません。追加前に「データのバックアップ」で保存し、ホーム画面版が空の場合は同じファイルを取り込んでください。</p>
+      <p class="info-note">※iPhoneでは、Safari版とホーム画面版のデータは自動で同期されません。追加前に「設定」タブの「データのバックアップ」で保存し、ホーム画面版が空の場合は同じファイルを取り込んでください。</p>
     </div>
     <div class="info-section">
       <h3>■ データの保存について</h3>
       <p>入力したデータ（メモ・献立・家族情報など）は、この端末内にのみ保存されます。サーバーには保存されません。</p>
-      <p>そのため、端末変更時や家族と共有したい場合、またはデータを残しておきたい場合は、「データのバックアップ」から書き出し・取り込みを行ってください。</p>
+      <p>そのため、端末変更時や家族と共有したい場合、またはデータを残しておきたい場合は、「設定」タブの「データのバックアップ」から書き出し・取り込みを行ってください。</p>
     </div>
     <div class="info-section">
       <h3>■ URL共有について</h3>
@@ -53,139 +54,237 @@
 </div>
 
 <main>
-  <section class="card">
-    <h2>食べたいものメモ</h2>
-    <form id="wish-form" class="add-form">
-      <input type="text" id="wish-input" placeholder="例：麻婆豆腐" autocomplete="off" required>
-      <button type="submit">追加</button>
-    </form>
-    <ul id="wish-list" class="wish-list"></ul>
-    <p id="empty-message" class="empty-message">まだメモがありません。食べたいものを追加してみましょう。</p>
-  </section>
+  <!-- ① 予定 -->
+  <div class="tab-panel" id="tab-plan" data-tab="plan">
+    <section class="card onboarding-card" id="onboarding-card" hidden>
+      <h2>はじめての方へ</h2>
+      <p class="section-note">最初はこの順番で進めるとスムーズです。</p>
+      <ol class="onboarding-steps">
+        <li><a href="family.html">家族を登録する</a>（晩ごはんを食べる人と、子どもの年齢層）</li>
+        <li><a href="dislikes.html">アレルギーと苦手な食材を登録する</a></li>
+        <li>下の「今週の予定」で、日ごとに食べる人を選ぶ</li>
+        <li>「献立」タブで質問文を作って、AIツールに送る</li>
+      </ol>
+      <button type="button" id="onboarding-close-btn" class="secondary-btn">わかった（閉じる）</button>
+    </section>
 
-  <section class="card">
-    <h2>今週の予定</h2>
-    <p class="section-note">日ごとに、晩ごはんにいる家族をタップで選んでください（複数選択できます）。食べない日は「作らない」を押してください。買い物の日がずれるときは、開始日・終了日を変えれば好きな期間（例：木曜〜次の火曜）にできます（期間を変えても、他の期間の記録は消えずに残ります）。</p>
-    <div class="period-controls">
-      <input type="date" id="period-start-input" aria-label="期間の開始日">
-      <span class="period-tilde">〜</span>
-      <input type="date" id="period-end-input" aria-label="期間の終了日">
-    </div>
-    <div class="period-nav">
-      <button type="button" id="prev-period-btn">← 前の期間</button>
-      <button type="button" id="next-period-btn">次の期間 →</button>
-    </div>
-    <ul id="week-list" class="week-list"></ul>
-    <a href="family.html" class="nav-link-btn">家族構成を編集する →</a>
-  </section>
+    <section class="card notice-card" id="preference-update-banner" hidden>
+      <p id="preference-update-text" class="notice-text"></p>
+      <a href="#review" class="secondary-btn link-btn" id="preference-update-link">「好みと傾向」を更新する →</a>
+    </section>
 
-  <section class="card">
-    <h2>今ある食材</h2>
-    <p class="section-note">家にある食材を品名と量で書いておくと、AIが献立を考えるときに使い切れるよう参考にします。買う食材リストからも自動で除かれます。</p>
-    <form id="stock-form" class="stock-form">
-      <input type="text" id="stock-name-input" placeholder="品名（例：にんじん）" autocomplete="off" required>
-      <div class="stock-form-row">
-        <input type="text" id="stock-amount-input" placeholder="量（例：2本）" autocomplete="off">
+    <section class="card">
+      <h2>食べたいものメモ</h2>
+      <form id="wish-form" class="add-form">
+        <input type="text" id="wish-input" placeholder="例：麻婆豆腐" autocomplete="off" required>
         <button type="submit">追加</button>
-      </div>
-    </form>
-    <ul id="stock-list" class="wish-list"></ul>
-    <p id="stock-empty-message" class="empty-message">まだ登録されていません。</p>
-  </section>
-
-  <section class="card">
-    <h2>AIに献立を考えてもらう</h2>
-    <p class="section-note">お使いのAIツール（無料で使えるもので大丈夫です）に、下で作る質問文を貼り付けて使います。</p>
-
-    <div class="ai-step">
-      <p class="ai-step-title">追加の指示（任意）</p>
-      <textarea id="extra-instruction-input" class="ai-textarea" rows="2" placeholder="例：火曜は軽めに、豚肉は使わないで"></textarea>
-    </div>
-
-    <div class="ai-step">
-      <p class="ai-step-title">この期間の副菜の品数（任意、指定なしなら2品程度）</p>
-      <input type="number" id="side-dish-count-input" class="ai-textarea" min="0" inputmode="numeric" placeholder="例：2">
-    </div>
-
-    <a href="dislikes.html" class="nav-link-btn">アレルギーと苦手な食材の登録 →</a>
-
-    <div class="ai-step">
-      <p class="ai-step-title">① 質問文を作る</p>
-      <button type="button" id="make-prompt-btn">質問文を作る</button>
-    </div>
-
-    <div id="prompt-area" class="ai-step" hidden>
-      <p class="ai-step-title">② コピーして、お使いのAIツールに貼り付けて送る</p>
-      <textarea id="prompt-output" class="ai-textarea" readonly rows="4"></textarea>
-      <button type="button" id="copy-prompt-btn">コピーする</button>
-      <p id="copy-status" class="copy-status" aria-live="polite"></p>
-    </div>
-
-    <div class="ai-step">
-      <p class="ai-step-title">③ AIの返事をここに貼り付ける</p>
-      <textarea id="ai-response-input" class="ai-textarea" rows="4" placeholder="ここに貼り付け"></textarea>
-      <button type="button" id="load-menu-btn">④ 読み込む</button>
-      <p id="load-status" class="load-status" aria-live="polite"></p>
-    </div>
-
-    <ul id="menu-list" class="menu-list"></ul>
-
-    <p class="ai-step-title side-dish-title">副菜の提案</p>
-    <ul id="side-dish-list" class="menu-list"></ul>
-    <p id="side-dish-empty" class="empty-message">まだありません。</p>
-
-    <div class="ai-step">
-      <p class="ai-step-title">この期間の献立を保存</p>
-      <form id="save-menu-form" class="stock-form-row">
-        <input type="text" id="save-menu-label-input" placeholder="名前（任意、例：10月第1週）" autocomplete="off">
-        <button type="submit">保存</button>
       </form>
-      <p id="save-menu-status" class="copy-status" aria-live="polite"></p>
-    </div>
+      <ul id="wish-list" class="wish-list"></ul>
+      <p id="empty-message" class="empty-message">まだメモがありません。食べたいものを追加してみましょう。</p>
+    </section>
 
-    <a href="menus.html" class="nav-link-btn">保存した献立リストを見る →</a>
-  </section>
-
-  <section class="card">
-    <h2>買う食材リスト</h2>
-    <p class="section-note">献立から自動でまとめます。肉・魚 → 野菜 → その他 → 調味料の順に並びます。調味料マスタで「家にある」ものと、「今ある食材」に登録したものは除外されます。できるだけ合計の量も表示します。</p>
-    <p id="budget-estimate" class="budget-estimate"></p>
-    <form id="extra-shopping-form" class="stock-form">
-      <input type="text" id="extra-shopping-name-input" placeholder="ほしいもの（例：ラップ）" autocomplete="off" required>
-      <div class="stock-form-row">
-        <input type="text" id="extra-shopping-amount-input" placeholder="量（任意）" autocomplete="off">
-        <button type="submit">追加</button>
+    <section class="card">
+      <h2>今週の予定</h2>
+      <p class="section-note">日ごとに、晩ごはんにいる家族をタップで選んでください（複数選択できます）。食べない日は「作らない」を押してください。買い物の日がずれるときは、開始日・終了日を変えれば好きな期間（例：木曜〜次の火曜）にできます（期間を変えても、他の期間の記録は消えずに残ります）。</p>
+      <div class="period-controls">
+        <input type="date" id="period-start-input" aria-label="期間の開始日">
+        <span class="period-tilde">〜</span>
+        <input type="date" id="period-end-input" aria-label="期間の終了日">
       </div>
-    </form>
-    <ul id="shopping-list" class="shopping-list"></ul>
-    <p id="shopping-empty" class="empty-message">まだ食材の情報がありません。</p>
+      <div class="period-nav">
+        <button type="button" id="prev-period-btn">← 前の期間</button>
+        <button type="button" id="next-period-btn">次の期間 →</button>
+      </div>
+      <ul id="week-list" class="week-list"></ul>
+    </section>
 
-    <button type="button" id="share-shopping-btn" class="nav-link-btn share-btn">買い物リストを共有する（未購入分のみ）</button>
-    <p id="share-shopping-status" class="copy-status" aria-live="polite"></p>
+    <section class="card">
+      <h2>今ある食材</h2>
+      <p class="section-note">家にある食材を品名と量で書いておくと、AIが献立を考えるときに使い切れるよう参考にします。買う食材リストからも自動で除かれます。</p>
+      <form id="stock-form" class="stock-form">
+        <input type="text" id="stock-name-input" placeholder="品名（例：にんじん）" autocomplete="off" required>
+        <div class="stock-form-row">
+          <input type="text" id="stock-amount-input" placeholder="量（例：2本）" autocomplete="off">
+          <button type="submit">追加</button>
+        </div>
+      </form>
+      <ul id="stock-list" class="wish-list"></ul>
+      <p id="stock-empty-message" class="empty-message">まだ登録されていません。</p>
+    </section>
 
-    <a href="pantry.html" class="nav-link-btn">調味料マスタを編集する →</a>
-  </section>
+    <a href="#menu" class="primary-btn next-tab-btn">次へ：献立を作る →</a>
+  </div>
 
-  <section class="card">
-    <h2>結果・メモ</h2>
-    <p class="section-note">実際にかかった金額や感想など、自由にメモできます。この期間だけの記録として保存されます。</p>
-    <textarea id="period-notes-input" class="ai-textarea" rows="3" placeholder="例：実際は3,800円だった。鮭のホイル焼きが好評だった。"></textarea>
-  </section>
+  <!-- ② 献立 -->
+  <div class="tab-panel" id="tab-menu" data-tab="menu" hidden>
+    <section class="card">
+      <h2>AIに献立を考えてもらう</h2>
+      <p class="section-note">お使いのAIツール（無料で使えるもので大丈夫です）に、下で作る質問文を貼り付けて使います。</p>
 
-  <section class="card">
-    <h2>データのバックアップ</h2>
-    <p class="section-note">入力したデータはこの端末のブラウザだけに保存されています。端末を変えても、ここで書き出したファイルを新しい端末で取り込めば復元できます。夫婦で共有したい場合も、書き出したファイルを送って取り込んでもらってください。</p>
-    <p class="section-note import-warning">⚠️ 書き出したファイルには、アレルギーなど健康に関する情報も含まれます。送る相手やアプリには気をつけてください。</p>
-    <button type="button" id="export-backup-btn" class="nav-link-btn">データを書き出す（ファイルを保存）</button>
-    <p id="last-backup-label" class="section-note"></p>
-    <p id="export-backup-status" class="copy-status" aria-live="polite"></p>
+      <div class="ai-step">
+        <p class="ai-step-title">追加の指示（任意）</p>
+        <textarea id="extra-instruction-input" class="ai-textarea" rows="2" placeholder="例：火曜は軽めに、豚肉は使わないで"></textarea>
+      </div>
 
-    <label for="import-backup-input" id="import-backup-label" class="nav-link-btn import-backup-label" tabindex="0" role="button">データを取り込む（ファイルを選択）</label>
-    <input type="file" id="import-backup-input" accept="application/json" hidden>
-    <p class="section-note import-warning">⚠️ 取り込むと、今この端末に入っているデータは上書きされます。</p>
-    <p id="import-backup-status" class="copy-status" aria-live="polite"></p>
-  </section>
+      <div class="ai-step">
+        <p class="ai-step-title">この期間の副菜の品数（任意、指定なしなら2品程度）</p>
+        <input type="number" id="side-dish-count-input" class="ai-textarea" min="0" inputmode="numeric" placeholder="例：2">
+      </div>
+
+      <div class="ai-step">
+        <p class="ai-step-title">今回AIに伝わること</p>
+        <ul id="prompt-preview" class="prompt-preview"></ul>
+      </div>
+
+      <div class="ai-step">
+        <p class="ai-step-title">① 質問文を作ってコピーする</p>
+        <button type="button" id="make-prompt-btn" class="primary-btn">質問文を作ってコピー</button>
+        <p id="copy-status" class="copy-status" aria-live="polite"></p>
+        <details id="prompt-area" class="prompt-details" hidden>
+          <summary>質問文を見る</summary>
+          <textarea id="prompt-output" class="ai-textarea" readonly rows="6"></textarea>
+        </details>
+      </div>
+
+      <div class="ai-step" id="response-area">
+        <p class="ai-step-title">② AIツールに貼り付けて送ったら、返事をここに貼り付ける</p>
+        <textarea id="ai-response-input" class="ai-textarea" rows="4" placeholder="ここに貼り付け"></textarea>
+        <button type="button" id="load-menu-btn">③ 読み込む</button>
+      </div>
+      <p id="load-status" class="load-status" aria-live="polite"></p>
+      <button type="button" id="reopen-response-btn" class="secondary-btn" hidden>別の返事を読み込む</button>
+    </section>
+
+    <section class="card">
+      <h2>この期間の献立</h2>
+      <p class="section-note">料理名を押すと、料理名と食材を直せます。食べたあとに 👍・👎・「子どもが食べた」を押しておくと、次からの献立に好みが反映されます（押さなくても使えます）。</p>
+      <ul id="menu-list" class="menu-list"></ul>
+      <p id="menu-empty" class="empty-message">まだ献立がありません。上の手順でAIに考えてもらいましょう。</p>
+
+      <p class="ai-step-title side-dish-title">副菜の提案</p>
+      <ul id="side-dish-list" class="menu-list"></ul>
+      <p id="side-dish-empty" class="empty-message">まだありません。</p>
+
+      <div class="ai-step favorite-register">
+        <p class="ai-step-title">この期間をお気に入りに登録</p>
+        <form id="save-menu-form" class="stock-form-row">
+          <input type="text" id="save-menu-label-input" placeholder="名前（任意、例：10月第1週）" autocomplete="off">
+          <button type="submit">登録</button>
+        </form>
+        <p id="save-menu-status" class="copy-status" aria-live="polite"></p>
+      </div>
+
+      <a href="menus.html" class="nav-link-btn">お気に入りの献立を見る →</a>
+    </section>
+
+    <a href="#shopping" class="primary-btn next-tab-btn">次へ：買い物リスト →</a>
+  </div>
+
+  <!-- ③ 買い物 -->
+  <div class="tab-panel" id="tab-shopping" data-tab="shopping" hidden>
+    <section class="card">
+      <h2>買う食材リスト</h2>
+      <p class="section-note">献立から自動でまとめます。肉・魚 → 野菜 → その他 → 調味料の順に並びます。調味料マスタで「家にある」ものと、「今ある食材」に登録したものは除外されます。できるだけ合計の量も表示します。</p>
+      <p id="budget-estimate" class="budget-estimate"></p>
+      <form id="extra-shopping-form" class="stock-form">
+        <input type="text" id="extra-shopping-name-input" placeholder="ほしいもの（例：ラップ）" autocomplete="off" required>
+        <div class="stock-form-row">
+          <input type="text" id="extra-shopping-amount-input" placeholder="量（任意）" autocomplete="off">
+          <button type="submit">追加</button>
+        </div>
+      </form>
+      <ul id="shopping-list" class="shopping-list"></ul>
+      <p id="shopping-empty" class="empty-message">まだ食材の情報がありません。</p>
+
+      <button type="button" id="share-shopping-btn" class="nav-link-btn share-btn">買い物リストを共有する（未購入分のみ）</button>
+      <p id="share-shopping-status" class="copy-status" aria-live="polite"></p>
+    </section>
+
+    <a href="#review" class="primary-btn next-tab-btn">次へ：ふりかえり →</a>
+  </div>
+
+  <!-- ④ ふりかえり -->
+  <div class="tab-panel" id="tab-review" data-tab="review" hidden>
+    <section class="card">
+      <h2>結果・メモ</h2>
+      <p class="section-note">この期間だけの記録として保存されます。</p>
+      <label class="field-label" for="actual-cost-input">実際にかかった金額（円）</label>
+      <input type="number" id="actual-cost-input" class="ai-textarea" min="0" inputmode="numeric" placeholder="例：3800">
+      <p id="actual-cost-diff" class="section-note"></p>
+      <label class="field-label" for="period-notes-input">感想・メモ</label>
+      <textarea id="period-notes-input" class="ai-textarea" rows="3" placeholder="例：鮭のホイル焼きが好評だった。"></textarea>
+    </section>
+
+    <section class="card">
+      <h2>わが家の傾向</h2>
+      <p class="section-note">献立と 👍👎 の記録から、アプリが数えています（AIは使いません）。</p>
+      <dl id="stats-list" class="stats-list"></dl>
+    </section>
+
+    <section class="card">
+      <h2>お気に入り料理</h2>
+      <p class="section-note">👍 を付けた料理です。「メモに入れる」を押すと、食べたいものメモに入ります。</p>
+      <ul id="favorite-dish-list" class="wish-list"></ul>
+      <p id="favorite-dish-empty" class="empty-message">まだありません。「献立」タブで 👍 を押すとここにたまります。</p>
+    </section>
+
+    <section class="card" id="preference-section">
+      <h2>好みと傾向</h2>
+      <p class="section-note">ここの内容は、毎回の質問文に入ります。自由に書き直せます。</p>
+      <div id="preference-fields"></div>
+
+      <details id="trend-details" class="prompt-details trend-details">
+        <summary>AIにまとめ直してもらう</summary>
+        <p class="section-note">👍👎・作らなかった日・感想・金額の記録から、AIに「好みと傾向」を更新してもらいます。</p>
+        <div class="ai-step">
+          <p class="ai-step-title">① 質問文を作ってコピーする</p>
+          <button type="button" id="make-trend-prompt-btn" class="primary-btn">質問文を作ってコピー</button>
+          <p id="copy-trend-status" class="copy-status" aria-live="polite"></p>
+          <textarea id="trend-prompt-output" class="ai-textarea" readonly rows="5" hidden></textarea>
+        </div>
+        <div class="ai-step">
+          <p class="ai-step-title">② AIツールの返事をここに貼り付ける</p>
+          <textarea id="trend-response-input" class="ai-textarea" rows="4" placeholder="ここに貼り付け"></textarea>
+          <button type="button" id="load-trend-btn">③ 読み込む</button>
+          <p id="load-trend-status" class="load-status" aria-live="polite"></p>
+        </div>
+      </details>
+    </section>
+  </div>
+
+  <!-- 設定 -->
+  <div class="tab-panel" id="tab-settings" data-tab="settings" hidden>
+    <section class="card">
+      <h2>登録内容</h2>
+      <a href="family.html" class="nav-link-btn">家族構成 →</a>
+      <a href="dislikes.html" class="nav-link-btn">アレルギーと苦手な食材 →</a>
+      <a href="pantry.html" class="nav-link-btn">調味料マスタ（家にある調味料） →</a>
+      <a href="menus.html" class="nav-link-btn">お気に入りの献立 →</a>
+    </section>
+
+    <section class="card">
+      <h2>データのバックアップ</h2>
+      <p class="section-note">入力したデータはこの端末のブラウザだけに保存されています。端末を変えても、ここで書き出したファイルを新しい端末で取り込めば復元できます。夫婦で共有したい場合も、書き出したファイルを送って取り込んでもらってください。</p>
+      <p class="section-note import-warning">⚠️ 書き出したファイルには、アレルギーなど健康に関する情報も含まれます。送る相手やアプリには気をつけてください。</p>
+      <button type="button" id="export-backup-btn" class="nav-link-btn">データを書き出す（ファイルを保存）</button>
+      <p id="last-backup-label" class="section-note"></p>
+      <p id="export-backup-status" class="copy-status" aria-live="polite"></p>
+
+      <label for="import-backup-input" id="import-backup-label" class="nav-link-btn import-backup-label" tabindex="0" role="button">データを取り込む（ファイルを選択）</label>
+      <input type="file" id="import-backup-input" accept="application/json" hidden>
+      <p class="section-note import-warning">⚠️ 取り込むと、今この端末に入っているデータは上書きされます。</p>
+      <p id="import-backup-status" class="copy-status" aria-live="polite"></p>
+    </section>
+  </div>
 </main>
+
+<nav class="tab-bar" aria-label="画面の切り替え">
+  <a href="#plan" data-tab="plan">予定</a>
+  <a href="#menu" data-tab="menu">献立</a>
+  <a href="#shopping" data-tab="shopping">買い物</a>
+  <a href="#review" data-tab="review">ふりかえり</a>
+  <a href="#settings" data-tab="settings">設定</a>
+</nav>
 
 <script src="js/shared.js"></script>
 <script src="js/period.js"></script>
@@ -194,12 +293,17 @@
 <script src="js/shopping-list.js"></script>
 <script src="js/info-panel.js"></script>
 <script src="js/wishlist.js"></script>
+<script src="js/feedback.js"></script>
+<script src="js/preference.js"></script>
 <script src="js/ai-prompt.js"></script>
 <script src="js/ai-parse.js"></script>
 <script src="js/ai-load.js"></script>
 <script src="js/period-notes.js"></script>
 <script src="js/side-dishes.js"></script>
 <script src="js/save-menu.js"></script>
+<script src="js/review.js"></script>
+<script src="js/onboarding.js"></script>
+<script src="js/tabs.js"></script>
 <script src="js/backup.js"></script>
 </body>
 </html>

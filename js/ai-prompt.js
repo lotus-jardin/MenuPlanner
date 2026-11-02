@@ -17,8 +17,29 @@ function loadActiveDislikedIngredients() {
 const makePromptBtn = document.getElementById("make-prompt-btn");
 const promptArea = document.getElementById("prompt-area");
 const promptOutput = document.getElementById("prompt-output");
-const copyPromptBtn = document.getElementById("copy-prompt-btn");
 const copyStatus = document.getElementById("copy-status");
+const promptPreview = document.getElementById("prompt-preview");
+
+// 好み・最近の料理のうち、質問文に入れるもの（多すぎると質問文が長くなるので件数を絞る）
+const RECENT_DISH_DAYS = 21;
+const FEEDBACK_DISH_LIMIT = 10;
+
+function getPromptFeedbackLists() {
+  const recent = getRecentDishes(loadPeriodStart(), RECENT_DISH_DAYS);
+  const recentSet = new Set(recent);
+  // 最近出たばかりの料理は「定番の候補」に入れない（「避けて」と矛盾するため）
+  const favorites = getFavoriteDishes()
+    .filter((s) => !recentSet.has(s.dish))
+    .slice(0, FEEDBACK_DISH_LIMIT)
+    .map((s) => s.dish);
+  const disliked = getDislikedDishes().slice(0, FEEDBACK_DISH_LIMIT).map((s) => s.dish);
+  const kidFavorites = getKidFavoriteDishes().slice(0, FEEDBACK_DISH_LIMIT).map((s) => s.dish);
+  return { recent, favorites, disliked, kidFavorites };
+}
+
+function bulletList(items) {
+  return items.map((item) => `・${item}`).join("\n");
+}
 
 function buildPrompt() {
   const wishes = loadWishes();
@@ -76,10 +97,19 @@ function buildPrompt() {
     ? `\n【追加の指示】\n${extraInstruction}\n`
     : "";
 
-  const preferenceProfile = loadPreferenceProfile();
-  const preferenceBlock = preferenceProfile
-    ? `\n【好みと傾向】\n${preferenceProfile}\n`
-    : "";
+  const preferenceText = formatPreferenceForPrompt();
+  const preferenceBlock = preferenceText ? `\n【好みと傾向】\n${preferenceText}\n` : "";
+
+  // これまでの 👍👎 と、直近に出た料理（使うほど好みに近づくための仕組み）
+  const { recent, favorites, disliked, kidFavorites } = getPromptFeedbackLists();
+  const feedbackBlocks = [
+    favorites.length > 0 ? `【家族に好評だった料理（定番の候補）】\n${bulletList(favorites)}` : "",
+    kidFavorites.length > 0 ? `【子どもがよく食べた料理（参考に）】\n${bulletList(kidFavorites)}` : "",
+    disliked.length > 0 ? `【いまいちだった料理（使わないでください）】\n${bulletList(disliked)}` : "",
+    recent.length > 0 ? `【最近（直近${RECENT_DISH_DAYS}日間）出た料理（なるべく避けてください）】\n${bulletList(recent)}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 
   const dayCount = getPeriodDates().length;
   const sideDishCountValue = parseInt(loadSideDishCount(), 10);
@@ -94,6 +124,8 @@ function buildPrompt() {
 ・以下の「苦手な食材」は使わないでください。
 ・以下の「アレルギー」に書かれている食材は、安全上の理由で、対象の家族がその日いるかどうかに関わらず、この期間中は一切使わないでください。少量の使用や、原材料として紛れ込む可能性（例：卵アレルギーならマヨネーズや練り物にも注意）にも配慮してください。
 ・「好みと傾向」が書かれている場合は、それも踏まえて味付けや献立の方向性を考えてください。
+・「家族に好評だった料理」がある場合は、期間中に1〜2品くらい取り入れても構いません。「子どもがよく食べた料理」は、子どもが食べやすい献立の参考にしてください。
+・「いまいちだった料理」は使わないでください。「最近出た料理」と同じ料理は、なるべく避けてください。
 ・「作らない」の日、または人数が0人や未選択の日は献立を考えず、dish を null、ingredients を空配列にしてください。
 ・各日に書かれている人数（大人◯人・子ども◯人）に合わせて、使う食材と分量を計算してください。人数が少ない日は、品数が少なめの簡単な料理でも構いません。
 ・子どもの名前の後ろに【】で年齢層が書かれている場合は、その年齢層に応じて、その子ども分の食材量を加減してください。
@@ -110,7 +142,7 @@ ${dislikedText}
 
 【アレルギー（安全のため絶対に使わないでください）】
 ${allergyText}
-
+${feedbackBlocks ? `\n${feedbackBlocks}\n` : ""}
 【食べたいものメモ】
 ${wishText}
 
@@ -143,22 +175,53 @@ ${days}
 【大事】返事は必ず \`\`\`json の行で始めて、\`\`\` の行で終えてください。コードブロックの外には何も書かないでください。`;
 }
 
-makePromptBtn.addEventListener("click", () => {
+// 「今回AIに伝わること」：質問文を作る前に、何がAIに伝わるかを一覧で見せる
+function renderPromptPreview() {
+  const dates = getPeriodDates();
+  const statusMap = loadWeekStatus();
+  const cookingDays = dates.filter((d) => {
+    const entry = statusMap[toDateKey(d)];
+    return !(entry && entry.cooking === false);
+  }).length;
+  const first = dates[0];
+  const last = dates[dates.length - 1];
+
+  const allergies = loadAllergies().map((i) => i.text);
+  const dislikes = loadActiveDislikedIngredients().map((i) => i.text);
+  const { recent, favorites, disliked, kidFavorites } = getPromptFeedbackLists();
+
+  const namesOrNone = (list) => (list.length > 0 ? list.join("、") : "なし");
+  const rows = [
+    `期間：${first.getMonth() + 1}/${first.getDate()}〜${last.getMonth() + 1}/${last.getDate()}（${dates.length}日間、作る日は${cookingDays}日）`,
+    `アレルギー：${namesOrNone(allergies)}`,
+    `苦手な食材：${namesOrNone(dislikes)}`,
+    `好評だった料理：${favorites.length}品${kidFavorites.length > 0 ? `／子どもがよく食べた料理：${kidFavorites.length}品` : ""}`,
+    `いまいちだった料理：${disliked.length}品`,
+    `最近出た料理（なるべく避ける）：${recent.length}品`,
+    `好みと傾向：${hasAnyPreference() ? "あり" : "まだなし（「ふりかえり」タブで書けます）"}`,
+  ];
+
+  promptPreview.innerHTML = "";
+  for (const row of rows) {
+    const li = document.createElement("li");
+    li.textContent = row;
+    promptPreview.appendChild(li);
+  }
+}
+
+makePromptBtn.addEventListener("click", async () => {
   promptOutput.value = buildPrompt();
   promptArea.hidden = false;
-  copyStatus.textContent = "";
-});
-
-copyPromptBtn.addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText(promptOutput.value);
-    copyStatus.textContent = "コピーしました。お使いのAIツールに貼り付けてください。";
+    copyStatus.textContent = "コピーしました。お使いのAIツールに貼り付けて送ってください。";
     copyStatus.classList.remove("is-error");
   } catch {
-    // クリップボードが使えない環境向けに、手動選択できるようにしておく
+    // クリップボードが使えない環境向けに、質問文を開いて選択した状態にしておく
+    promptArea.open = true;
     promptOutput.focus();
     promptOutput.select();
-    copyStatus.textContent = "自動コピーできませんでした。テキストが選択されているので、そのままコピーしてください。";
+    copyStatus.textContent = "自動コピーできませんでした。下に質問文を開いて選択したので、そのままコピーしてください。";
     copyStatus.classList.add("is-error");
   }
 });
@@ -199,10 +262,4 @@ sideDishCountInput.addEventListener("blur", () => {
   localStorage.setItem(SIDE_DISH_COUNT_KEY, sideDishCountInput.value);
 });
 
-// 「好みと傾向」のデータ読み込み（画面はmenus.htmlの方にある）
-// 保存した献立をAIに分析させた結果（手で書き直せる）。毎回の質問文に含める。
-const PREFERENCE_PROFILE_KEY = "menuApp.preferenceProfile";
-
-function loadPreferenceProfile() {
-  return localStorage.getItem(PREFERENCE_PROFILE_KEY) || "";
-}
+renderPromptPreview();

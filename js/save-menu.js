@@ -1,4 +1,4 @@
-// 「献立リスト」への保存（期間に名前を付けてブックマークしておく機能。画面は menus.html）
+// 「お気に入りの献立」への登録（期間に名前を付けてブックマークしておく機能。画面は menus.html）
 // SAVED_MENUS_KEY・loadSavedMenus・saveSavedMenus は js/shared.js にまとめてある。
 const saveMenuForm = document.getElementById("save-menu-form");
 const saveMenuLabelInput = document.getElementById("save-menu-label-input");
@@ -34,6 +34,6 @@ saveMenuForm.addEventListener("submit", (event) => {
   saveSavedMenus(list);
 
   saveMenuLabelInput.value = "";
-  saveMenuStatus.textContent = "保存しました。「保存した献立リストを見る」から確認できます。";
+  saveMenuStatus.textContent = "お気に入りに登録しました。「お気に入りの献立」から見られます。";
   saveMenuStatus.classList.remove("is-error");
 });
